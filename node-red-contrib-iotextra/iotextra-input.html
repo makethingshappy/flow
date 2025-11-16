@@ -1,0 +1,49 @@
+<script type="text/javascript">
+    RED.nodes.registerType('iotextra-input', {
+        category: 'network',
+        color: '#C0DEED',
+        defaults: {
+            name: { value: "" },
+            broker: { value: "", type: "mqtt-broker", required: true },
+            baseTopic: { value: "iotextra/device_1", required: true },
+            channel: { value: "1", required: true, validate: RED.validators.number() }
+        },
+        inputs: 0,
+        outputs: 1,
+        icon: "bridge-in.png",
+        label: function() {
+            return this.name || `IoTextra Input ${this.channel}`;
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="iotextra-input">
+    <div class="form-row">
+        <label for="node-input-broker"><i class="fa fa-globe"></i> Broker</label>
+        <input type="text" id="node-input-broker">
+    </div>
+    <div class="form-row">
+        <label for="node-input-baseTopic"><i class="fa fa-tasks"></i> Base Topic</label>
+        <input type="text" id="node-input-baseTopic" placeholder="e.g., iotextra/device/1">
+    </div>
+    <div class="form-row">
+        <label for="node-input-channel"><i class="fa fa-list-ol"></i> Channel</label>
+        <input type="number" id="node-input-channel" style="width: 80px;" min="1" max="8">
+    </div>
+    <hr>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="iotextra-input">
+    <p>Monitors an IoTextra device input (e.g., a sensor) via MQTT.</p>
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">number</span></dt>
+        <dd>The state of the input, typically <code>0</code> or <code>1</code>.</dd>
+    </dl>
+    <h3>Details</h3>
+    <p>Subscribes to the topic: <code>&lt;baseTopic&gt;/input/&lt;channel&gt;</code></p>
+</script>

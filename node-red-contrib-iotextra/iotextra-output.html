@@ -1,0 +1,56 @@
+<script type="text/javascript">
+    RED.nodes.registerType('iotextra-output', {
+        category: 'network',
+        color: '#A6BBCF',
+        defaults: {
+            name: { value: "" },
+            broker: { value: "", type: "mqtt-broker", required: true },
+            baseTopic: { value: "iotextra/device_1", required: false },
+            channel: { value: "1", required: true, validate: RED.validators.number() }
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "bridge-out.png",
+        align: "right",
+        label: function() {
+            return this.name || `IoTextra Out ${this.channel}`;
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="iotextra-output">
+    <div class="form-row">
+        <label for="node-input-broker"><i class="fa fa-globe"></i> Broker</label>
+        <input type="text" id="node-input-broker">
+    </div>
+    <div class="form-row">
+        <label for="node-input-baseTopic"><i class="fa fa-tasks"></i> Base Topic</label>
+        <input type="text" id="node-input-baseTopic" placeholder="e.g., iotextra/device_1">
+    </div>
+    <div class="form-row">
+        <label for="node-input-channel"><i class="fa fa-list-ol"></i> Channel</label>
+        <input type="number" id="node-input-channel" style="width: 80px;" min="1" max="8">
+    </div>
+    <hr>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="iotextra-output">
+    <p>Controls an IoTextra device output (e.g., a relay) via MQTT and outputs its current state.</p>
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">boolean | number</span></dt>
+        <dd><code>true</code> or <code>1</code> will turn the output ON. Any other value will turn it OFF.</dd>
+    </dl>
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">boolean</span></dt>
+        <dd>The current state of the output. <code>true</code> for ON, <code>false</code> for OFF.</dd>
+    </dl>
+    <h3>Details</h3>
+    <p>Publishes to the topic: <code>&lt;baseTopic&gt;/output/&lt;channel&gt;/set</code></p>
+    <p>Subscribes to the topic: <code>&lt;baseTopic&gt;/output/&lt;channel&gt;/state</code> to receive the current state.</p>
+</script>
