@@ -1,0 +1,87 @@
+{
+  "module_type": "IoTsmart ESP32S3",
+  "mezzanine_type": "IoTextra Analog V2",
+  "channels": [
+    {
+      "name": "Sensor A",
+      "channel_type": "2",
+      "interface_type": "01",
+      "channel_number": 0,
+      "actions": 0,
+      "measurement_range": "0b10000001",
+      "adc_hardware_gain": 0.23761904761904762,
+      "shunt_resistance": 0.249,
+      "adc_offset": 0.0
+    },
+    {
+      "name": "Sensor B",
+      "channel_type": "2",
+      "interface_type": "01",
+      "channel_number": 1,
+      "actions": 0,
+      "measurement_range": "0b10100001",
+      "adc_hardware_gain": 0.23761904761904762,
+      "shunt_resistance": 0.249,
+      "adc_offset": 0.0
+    },
+    {
+      "name": "Sensor C",
+      "channel_type": "2",
+      "interface_type": "01",
+      "channel_number": 2,
+      "actions": 0,
+      "measurement_range": "0b10000011",
+      "adc_hardware_gain": 0.23761904761904762,
+      "shunt_resistance": 0.249,
+      "adc_offset": 0.0
+    },
+    {
+      "name": "Sensor D",
+      "channel_type": "2",
+      "interface_type": "01",
+      "channel_number": 3,
+      "actions": 0,
+      "measurement_range": "0b10100001",
+      "adc_hardware_gain": 0.23761904761904762,
+      "shunt_resistance": 0.249,
+      "adc_offset": 0.0
+    }
+  ],
+  "network": {
+    "wifi_ssid": "your_ssid",
+    "wifi_password": "your_password"
+  },
+  "mqtt": {
+    "broker": "your_broker.local",
+    "port": 1883,
+    "client_id": "pico-iotextra-controller-1",
+    "base_topic": "iotextra/device_1"
+  },
+  "hardware": {
+    "mode": "i2c",
+    "i2c_bus_id": 0,
+    "i2c_sda_pin": 11,
+    "i2c_scl_pin": 12,
+    "i2c_device_addr": "0x3f",
+    "eeprom_i2c_addr": "0x57",
+    "eeprom_size": 1024,
+    "num_of_adcs": 2,
+    "adc_sampling_rate": 128,
+    "gpio_host_pins": {
+      "1": 10,
+      "2": 11,
+      "3": 12,
+      "4": 13,
+      "5": 14,
+      "6": 15,
+      "7": 18,
+      "8": 19
+    },
+    "adc_i2c_addrs": [
+      "0x49",
+      "0x4B"
+    ]
+  },
+  "pin_config": "0b00001111",
+  "status_update_interval_s": 30
+}
