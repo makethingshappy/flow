@@ -19,9 +19,9 @@ A universal firmware for integrating IoTextra module series with Node-RED or sim
 ---
 
 ## Features
-- **Versatile control:** Monitor digitial input and output channels.
+- **Versatile control:** Monitor analog and digital I/O channels.
 - **Wireless connectivity:** Wi-Fi and standard MQTT protocol.
-- **Easy integration:** Custom Node-RED nodes (iotextra-input and iotextra-output) for quicker set up.
+- **Easy integration:** Custom Node-RED nodes for quicker set up.
 - **Dashboard examples:** Example flows for node-red are supplied for IoTextra Relay2, Input and Octal modules.
 - **Standardised firmware:** Universal firmware driver can be used with any IoTextra module out of the box.
 - **Simple configuration:** All 8 channels can be configured to be either input or output, as well as selecting interface type - iether I2C or GPIO (HOST connector) using a config file
@@ -29,40 +29,42 @@ A universal firmware for integrating IoTextra module series with Node-RED or sim
 ---
 
 ## Hardware Requirements
-- 1 x IoTbase PICO
+- 1 x IoTbase Module
 - 1 x IoTextra Module
-- 1 x Raspberry Pi Pico W
-- *(Optional)* Computer to run Node-RED or a dedicated device, e.g. Raspberry Pi 4
+- 1 x Microcontroller (ESP32-S3, PICO, PICO W, PICO 2W and etc)
+- *(Optional)* Computer to run Node-RED or a dedicated device, e.g. Raspberry Pi 5
 
 ---
 
 ## Software Requirements
 - **Thonny IDE** – for flashing firmware to Pico
-- **Node-RED** – installed locally or on a Raspberry Pi
-
+- **Node-RED** – installed locally or on a Single Board Computer like Raspberry Pi
 ---
 
 ## Step 1: Hardware Setup
-- Attach PICO W to the IoTbase PICO
-- Connect power supply to the IoTbase PICO via USB
-- Connect USB to the PICO W (for flashing the firmware)
-- Connect IoTbase PICO and IoTextra module via HOST connector
+- Attach MCU to the IoTbase
+- Connect power supply to the IoTbase via USB
+- Connect USB to the MCU (for flashing the firmware)
+- Connect IoTbase and IoTextra module via HOST connector
 
 ---
 
-## Step 2: Flashing MicroPython Firmware
-1. Download the `firmware.uf2` file from the repository - https://micropython.org/download/RPI_PICO_W/.
+## Step 2: Flashing MicroPython Firmware (Example: PICO W)
+1. Download the `firmware.uf2` file from MicroPython official website
+Example: For PICO W - `https://micropython.org/download/RPI_PICO_W/`
 2. Hold down BOOTSEL on the Pico W and connect it to your computer via micro-USB.
 3. Release BOOTSEL – Pico will appear as a `RPI-RP2` drive.
 4. Copy the `firmware.uf2` file to this drive.
 5. Pico will reboot with the new firmware.
 
+- Above applies for RPI PICO W board but you can find detailed guides for other microcontrollers that support MicroPython online.
+
 ---
 
 ## Step 3: Firmware Configuration
-1. Connect Pico W to your computer.
+1. Connect Microcontroller to your computer.
 2. Open Thonny IDE.
-3. Select interpreter: MicroPython (Raspberry Pi Pico).
+3. Select interpreter: MicroPython (Your Microcontroller).
 4. Upload every .py file to the microcontroller. 
 5. Open the `config.py` file and fill in the required details
 6. Save the file (Ctrl+S). The device will restart and attempt to connect to the network.
@@ -84,13 +86,13 @@ A universal firmware for integrating IoTextra module series with Node-RED or sim
      ```
    - Restart Node-RED
 
-   - You should see two new custom nodes called "iotextra - input" and iotextra - output" in the "network" category (check the images -> iotextra-io-node-function-category.png)
+   - You should see two new custom nodes called "iotextra - input", "iotextra - analog", and "iotextra - output" in the "network" category (check the images -> iotextra-io-node-function-category.png)
 
 ---
 
 ## Step 5: Importing the Example Dashboard
 1. Download the `node-red-examples` folder from the repository.
-2. In Node-RED: Menu → Import → select the `[your_board_name]_board_flow.json` file → Import
+2. In Node-RED: Menu → Import → select the `[your_board_name]_flow.json` file → Import
 3. Configure the MQTT broker address in the iotextra node if it differs from the default.
 4. Click Deploy.
 5. The dashboard will be available at: `http://<your-node-red-ip>:1880/ui`
