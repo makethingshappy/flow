@@ -1,3 +1,14 @@
+"""
+Title: Lightweight MQTT Client Implementation
+Description: A minimal MQTT client for MicroPython environments, supporting
+             basic connect, publish, subscribe, and message handling
+             with optional SSL/TLS.
+
+Author: Arshia Keshvari
+Role: Independent Developer, Engineer, and Project Author
+Last Updated: 2025-11-16
+"""
+
 import socket
 import struct
 from binascii import hexlify
