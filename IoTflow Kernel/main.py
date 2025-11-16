@@ -1,3 +1,21 @@
+"""
+--------------
+Main Firmware
+--------------
+This is the main MicroPython firmware for the IoTextra hardware modules. 
+It handles:
+- EEPROM-based configuration storage
+- I/O control via IotDriver (GPIO/I2C)
+- Analog sensor readings via AnalogDriver
+- Wi-Fi connectivity
+- MQTT communication with broker
+- Serial communication for configuration updates and queries
+
+Author: Arshia Keshvari
+Role: Independent Developer, Engineer, and Project Author
+Last Updated: 2025-11-16
+"""
+
 import time
 import machine
 import sys
