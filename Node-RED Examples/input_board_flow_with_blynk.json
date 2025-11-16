@@ -12,7 +12,7 @@
         "type": "iotextra-input",
         "z": "3b7788ab57f07d54",
         "name": "",
-        "broker": "x",
+        "broker": "690c80c21b3ed82b",
         "baseTopic": "iotextra/device_1",
         "channel": "1",
         "x": 520,
