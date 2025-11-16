@@ -1,155 +1,273 @@
-# IoTflow Forge
+# IoTflow Forge Configuration Tool
 
-A configuration tool for configuring digital I/O nodes for IoTextra mezzanines, saving/loading configurations as JSON files, and sending configurations to devices via serial.
+A comprehensive command-line interface tool for configuring digital and analog I/O nodes for IoTextra mezzanines, managing configurations as JSON files, and communicating with devices via serial.
 
 ## Overview
 
-This tool allows you to:
-- Create new digital I/O node configurations interactively
-- Configure up to 8 channels with specific interface types
+IoTflow Forge enables you to:
+- Create configurations for both **digital I/O** and **analog input** nodes interactively
+- Configure up to 8 channels per node with specific interface types and measurement ranges
 - Set network (Wi-Fi) and MQTT communication parameters
-- Configure hardware settings (GPIO/I2C modes, EEPROM, pin mappings)
-- Set pin configurations for input/output channels
+- Configure hardware settings (GPIO/I2C modes, EEPROM, ADC settings, pin mappings)
+- Define per-channel calibration for analog inputs (hardware gain, shunt resistance, offset)
 - Save configurations as JSON files for later use
-- Load existing configurations for editing or viewing
-- Send configurations to Raspberry Pi Pico (or similar) devices over serial
+- Load and edit existing configurations
+- Send configurations to devices (Raspberry Pi Pico, ESP32, etc.) over serial
 - Read configurations back from devices over serial
-- View current configurations in detail
-- Export estimated EEPROM format information (binary representation details)
+- View detailed configuration summaries
 
-The tool is designed to create configurations that can be stored in EEPROM on the device, as described in the accompanying documentation. Configurations define digital input/output nodes based on IoTextra mezzanines and supported microcontroller modules. The firmware on the device (not included in this tool) would use this configuration to interact with channels via MQTT.
+The tool creates configurations that can be stored in EEPROM on the device. The firmware on the device uses these configurations to interact with channels via MQTT, enabling remote control and monitoring of I/O operations.
 
 ## Features
 
 ### Supported Module Types
-- IoTbase PICO (with installed modules like Raspberry Pi Pico W, Pico 2W, Waveshare ESP32-S3 PICO, etc.)
-- IoTbase Nano (future full support; listed but development ongoing)
-- IoTsmart ESP32-S3
+- **IoTbase PICO** - Compatible with Raspberry Pi Pico W, Pico 2W
+- **IoTbase Nano**
+- **IoTsmart ESP32-S3**
 
-Note: At this stage, only MQTT over Wi-Fi is supported, so modules without Wi-Fi are not fully usable.
+*Note: Only MQTT over Wi-Fi is currently supported, so modules without Wi-Fi capabilities are not fully functional.*
 
-### Supported Interface Types
+### Supported Mezzanine Categories
+
+#### Digital I/O Mezzanines
+- IoTextra Input
+- IoTextra Octal
+- IoTextra Relay
+- IoTextra SSR Small
+- Custom digital mezzanines
+
+**Supported Digital Interface Types:**
 - **01** - GPIO only
-- **11** - I2C via TCA9534
-- **12** - GPIO and I2C via TCA9534 (future expansion; allows per-channel selection)
+- **11** - I2C via TCA9534 I/O expander
+- **12** - GPIO and I2C via TCA9534 (future expansion)
+
+#### Analog Input Mezzanines
+- IoTextra Analog (2 ADCs)
+- IoTextra Combo (1 ADC + digital I/O)
+- IoTextra Analog V2 (2 ADCs)
+- IoTextra Analog V3 (2 ADCs)
+- Custom analog mezzanines
+
+**Supported Analog Interface Types:**
+- **01** - IoTextra Analog
+- **21** - IoTextra Combo
+- **02** - IoT Analog 2
+- **03** - IoT Analog 3
 
 ### Channel Configuration
-Each channel supports:
-- **Name**: Up to 8 alphanumeric characters (unique per configuration)
-- **Type**: Currently only "1" (Bit type; digital input/output)
-- **Interface**: GPIO ("01") or I2C ("11"), depending on overall interface type
-- **Channel Number**: 0-7 (corresponds to AP0-AP7 on HOST connector or P0-P7 on TCA9534)
-- **Actions**: Read-only (0) or Read+Write (1); stored as a bit field (bit 0 for write capability)
 
-Up to 8 channels per node. Channels are stored in EEPROM on the device.
+Each channel supports:
+
+#### Digital Channels (Type "1" - Bit)
+- **Name**: Up to 8 alphanumeric characters (unique per configuration)
+- **Type**: "1" (Bit type for digital input/output)
+- **Interface**: GPIO ("01") or I2C ("11")
+- **Channel Number**: 0-7 (maps to AP0-AP7 on HOST connector or P0-P7 on TCA9534)
+- **Actions**: 
+  - 0 = Read-only
+  - 1 = Read+Write (allows control via MQTT)
+
+#### Analog Channels (Type "2" - Int)
+- **Name**: Up to 8 alphanumeric characters (unique per configuration)
+- **Type**: "2" (Integer type for analog input)
+- **Interface**: Analog interface code (01, 21, 02, 03)
+- **Channel Number**: 0-7 (maps to ADC input channels)
+- **Actions**: 0 (Read-only; analog inputs cannot be written to)
+- **Measurement Range**: Selectable from supported ranges:
+  - Voltage: 0-0.5V, 0-5V, 0-10V, ±0.5V, ±5V, ±10V
+  - Current: 0-20mA, ±20mA, 4-20mA, 0-40mA
+
+#### Per-Channel ADC Calibration (Analog Only)
+Each analog channel can have individual calibration parameters:
+- **ADC Hardware Gain (K)**: Division factor set by hardware resistors
+  - Default: 0.2376 (two 49.9kΩ resistors in parallel)
+  - Modified: 0.4752 (one 49.9kΩ resistor - requires jumper changes)
+  - Custom values supported for specialized configurations
+- **Shunt Resistance**: Current measurement shunt value in Ohms
+  - Default: 0.249Ω
+  - IoTextra Analog V1 boards typically use 0.12Ω (120 Ohms)
+  - Custom values supported if you want to change the hardware
+- **ADC Offset**: Voltage offset compensation in volts
+  - Default: 0.0V
+  - Can be positive or negative to compensate for systematic errors
+
+*Maximum 8 channels per node (digital, analog, or mixed for combo boards).*
 
 ### Network Configuration
-- **Wi-Fi SSID and Password**: For connecting the device to Wi-Fi networks
+- **Wi-Fi SSID and Password**: Device network connectivity settings
 
 ### MQTT Configuration
-- **Broker Address**: IP or hostname of the MQTT broker
+- **Broker Address**: IP address or hostname of MQTT broker
 - **Port**: MQTT port (default: 1883)
-- **Client ID**: Unique identifier (default: "pico-iotextra-controller-1")
-- **Base Topic**: Base MQTT topic for publishing/subscribing (default: "iotextra/device_1")
+- **Client ID**: Unique device identifier (default: "pico-iotextra-controller-1")
+- **Base Topic**: Base MQTT topic for pub/sub (default: "iotextra/device_1")
 
 ### Hardware Configuration
-- **Hardware Mode**: "gpio" or "i2c" (default: "i2c")
-- **I2C Settings**: Bus ID (default: 0), SDA pin (default: 20), SCL pin (default: 21), device address (default: "0x3f")
-- **EEPROM Settings**: I2C address (default: "0x57"), size in bytes (default: 1024); EEPROM is used to store the node configuration and is accessible only from the node
-- **GPIO Pin Mapping**: Customizable mapping for HOST connector channels 1-8 (defaults: 10,11,12,13,14,15,18,19)
 
-### Pin Configuration
-- **Input/Output Mapping**: 8-bit binary string defining channel directions (stored as e.g., "0b00001111")
+#### Common Settings
+- **Hardware Mode**: "gpio" or "i2c" (i2c required for analog modules)
+- **I2C Settings**: 
+  - Bus ID (default: 0)
+  - SDA pin (default: 20)
+  - SCL pin (default: 21)
+  - Device address for I/O expander (default: 0x3f or 0x27)
+- **EEPROM Settings**: 
+  - I2C address (default: 0x57)
+  - Size in bytes (default: 1024)
+- **GPIO Pin Mapping**: Customizable mapping for HOST connector channels 1-8
+  - Defaults: 10, 11, 12, 13, 14, 15, 18, 19 for channels 1-8
+
+#### Analog-Specific Settings
+- **Number of ADCs**: 1-4 ADCs per mezzanine
+- **ADC I2C Addresses**: Individual addresses for each ADC (e.g., 0x49, 0x48)
+- **ADC Sampling Rate**: Configurable in SPS (samples per second)
+  - Options: 8, 16, 32, 64, 128 (default), 250, 475, 860 SPS
+  - Maps to ADS1115/ADS1015 ADC configuration codes
+
+### Pin Configuration (Digital Only)
+- **Input/Output Mapping**: 8-bit binary string defining channel directions
   - Format: "0b[P7][P6][P5][P4][P3][P2][P1][P0]"
   - 1 = Input channel, 0 = Output channel
+  - Examples:
+    - IoTExtra Relay2: "0b11110000" (channels 1-4 outputs, 5-8 unused)
+    - IoTExtra Input: "0b11111111" (all inputs)
+    - IoTExtra Octal: "0b00001111" (channels 0-3 outputs, 4-7 inputs)
 - **Status Update Interval**: Frequency for publishing status updates in seconds (default: 30)
 
 ### Serial Communication
-- Send JSON configurations to devices (e.g., Raspberry Pi Pico) over serial for storage in EEPROM
-- Read configurations back from devices over serial
-- Default serial port: /dev/cu.usbmodem2101 (configurable), baudrate: 115200
+- Send JSON configurations to devices over serial for EEPROM storage
+- Read configurations back from devices
+- Default serial port: /dev/cu.usbmodem2101 (configurable)
+- Baudrate: 115200
+- Protocol: JSON wrapped in `<START>...<END>` delimiters
 
-### Node Interaction (as per Documentation)
-The configuration enables firmware to handle digital nodes via MQTT commands:
-- Read channel status by name
-- Turn on channel by name
-- Turn off channel by name
-- Switch channel by name
-
-Future enhancements may include channel IDs for faster interaction.
+### MQTT Node Interaction
+Configured nodes enable firmware to handle digital and analog operations via MQTT:
+- **Digital Channels**:
+  - Read channel status by name
+  - Turn on/off channel by name
+  - Switch (toggle) channel by name
+- **Analog Channels**:
+  - Read current measurement value
+  - Subscribe to periodic status updates
 
 ## Installation
 
 ### Requirements
 - Python 3.10 or higher
-- `pyserial` for serial communication features (install via `pip install pyserial`)
-- Standard library modules: json, sys, serial, time, typing, dataclasses, enum
+- `pyserial` for serial communication
+  ```bash
+  pip install pyserial
+  ```
+- Standard library modules: json, sys, serial, time, typing, dataclasses, enum, re
 
 ### Running the Tool
 ```bash
-python3 configurator.py
+python3 IoTflow_Forge.py
 ```
 
 ## Usage
 
 ### Main Menu Options
 
-1. **Create new configuration** - Interactively create a new configuration
-2. **Load configuration from file** - Load an existing JSON file
-3. **Save configuration to file** - Save the current configuration to a JSON file
-4. **Edit channel configuration** - Modify channels in the current configuration
-5. **View current configuration** - Display details of the current configuration
-6. **Export EEPROM format info** - Show estimated binary EEPROM usage and format details
-7. **Send configuration to Pi** - Transmit the configuration over serial to the device
-8. **Read configuration from Pi** - Retrieve the configuration over serial from the device
-9. **Exit** - Exit the tool (prompts to save if unsaved changes)
+1. **Create new configuration** - Start fresh with interactive configuration wizard
+2. **Load configuration from file** - Import existing JSON configuration
+3. **Save configuration to file** - Export current configuration to JSON
+4. **Edit channel configuration** - Modify channels in loaded configuration
+5. **View current configuration** - Display detailed configuration summary
+6. **Send configuration to Pi** - Transmit configuration via serial to device
+7. **Read configuration from Pi** - Retrieve configuration from device via serial
+8. **Exit** - Close tool (prompts to save unsaved changes)
 
 ### Creating a New Configuration
 
-1. Select module type from the list
-2. Enter mezzanine type (e.g., "IoTextra Octal2")
-3. Choose interface type (GPIO, I2C, or both)
-4. Configure network settings (Wi-Fi SSID/password)
-5. Configure MQTT settings (broker, port, etc.)
-6. Configure hardware settings (mode, I2C pins/addresses, EEPROM, GPIO mapping)
-7. Set pin configuration (input/output mapping, with examples for common modules)
-8. Configure channels interactively (add/edit/remove/view)
+The tool guides you through:
+
+1. **Module Selection**: Choose your microcontroller board type
+2. **Mezzanine Category**: Select Digital I/O or Analog Input
+3. **Mezzanine Type**: Pick specific board or enter custom name
+4. **Network Settings**: Configure Wi-Fi credentials
+5. **MQTT Settings**: Set broker details and topics
+6. **Hardware Settings**: 
+   - I2C bus configuration
+   - EEPROM parameters
+   - For analog: ADC count, I2C addresses, sampling rate
+   - GPIO pin mappings
+7. **Pin Configuration**: Set input/output directions (digital only)
+8. **Channel Configuration**: Add, configure, and organize channels
 
 ### Channel Management
 
-- **Add Channel**: Create new channels with validation for uniqueness and limits
-- **Edit Channel**: Modify name, interface, number, or actions
-- **Remove Channel**: Delete channels with confirmation
-- **View Channels**: Display channels in a tabular format
+#### Adding Channels
+- **Digital Channels**:
+  - Assign unique name (max 8 characters)
+  - Select interface type (GPIO or I2C)
+  - Choose channel number (0-7)
+  - Set actions (read-only or read+write)
+  
+- **Analog Channels**:
+  - Assign unique name (max 8 characters)
+  - Select measurement range (voltage/current)
+  - Choose channel number (0-7, maps to ADC inputs)
+  - Configure per-channel calibration:
+    - Hardware gain (K factor)
+    - Shunt resistance for current measurements
+    - Offset compensation
+  - Actions automatically set to read-only
+
+#### Editing Channels
+- Modify name, interface, channel number, or actions
+- For analog: Update measurement range or calibration parameters
+- All changes validated in real-time
+
+#### Removing Channels
+- Delete channels with confirmation prompt
+- Channel numbers become available for reuse
+
+#### Viewing Channels
+- Tabular display with all channel details
+- Shows calibration parameters for analog channels
 
 ### Sending/Reading Configurations
-- Use option 7 to send the current JSON configuration over serial (wrapped in <START>...<END>)
-- Use option 8 to send a read command and receive the configuration back
-- Supports timeout and JSON parsing for responses
+
+**Send Configuration (Option 6)**:
+- Wraps JSON in `<START>...<END>` delimiters
+- Transmits via serial to device
+- Waits up to 20 seconds for device acknowledgment
+- Device stores configuration in EEPROM
+
+**Read Configuration (Option 7)**:
+- Sends read command to device
+- Receives and displays stored configuration
+- Useful for verification and backup
 
 ## Configuration File Format
 
-Configurations are saved in JSON format:
+Configurations are saved as JSON files with the following structure:
 
 ```json
 {
   "module_type": "IoTbase PICO",
-  "mezzanine_type": "IoTextra Octal2",
+  "mezzanine_type": "IoTextra Analog",
   "channels": [
     {
-      "name": "Relay1",
-      "channel_type": "1",
-      "interface_type": "11",
+      "name": "VoltIn1",
+      "channel_type": "2",
+      "interface_type": "01",
       "channel_number": 0,
-      "actions": 1
+      "actions": 0,
+      "measurement_range": "0b00000010",
+      "adc_hardware_gain": 0.23761904761904762,
+      "shunt_resistance": 0.249,
+      "adc_offset": 0.0
     }
   ],
   "network": {
-    "wifi_ssid": "MyWiFiNetwork",
-    "wifi_password": "MyWiFiPassword"
+    "wifi_ssid": "MyNetwork",
+    "wifi_password": "MyPassword"
   },
   "mqtt": {
-    "broker": "your_broker",
+    "broker": "192.168.1.100",
     "port": 1883,
     "client_id": "pico-iotextra-controller-1",
     "base_topic": "iotextra/device_1"
@@ -163,96 +281,193 @@ Configurations are saved in JSON format:
     "eeprom_i2c_addr": "0x57",
     "eeprom_size": 1024,
     "num_of_adcs": 2,
+    "adc_i2c_addrs": ["0x49", "0x48"],
     "adc_sampling_rate": 128,
     "gpio_host_pins": {
       "1": 10, "2": 11, "3": 12, "4": 13,
       "5": 14, "6": 15, "7": 18, "8": 19
-    },
-    "adc_i2c_addrs": [
-      "0x49",
-      "0x4B"
-    ]
+    }
   },
   "pin_config": "0b00001111",
   "status_update_interval_s": 30
 }
 ```
 
-### Configuration Parameters
+### Key Configuration Parameters
 
 #### Network Settings
-- `wifi_ssid`: Wi-Fi network name (default: empty)
-- `wifi_password`: Wi-Fi network password (default: empty)
+- `wifi_ssid`: Network name
+- `wifi_password`: Network password
 
 #### MQTT Settings
-- `broker`: MQTT broker IP/hostname (default: empty)
-- `port`: MQTT broker port (default: 1883)
-- `client_id`: Unique client identifier (default: "pico-iotextra-controller-1")
-- `base_topic`: Base MQTT topic (default: "iotextra/device_1")
+- `broker`: Broker IP/hostname
+- `port`: Broker port (default: 1883)
+- `client_id`: Unique identifier
+- `base_topic`: Topic prefix for device
 
 #### Hardware Settings
-- `mode`: "gpio" or "i2c" (default: "i2c")
-- `i2c_bus_id`: I2C bus identifier (default: 0)
-- `i2c_sda_pin`: I2C SDA pin (default: 20)
-- `i2c_scl_pin`: I2C SCL pin (default: 21)
-- `i2c_device_addr`: Mezzanine I2C address (hex, default: "0x3f")
-- `eeprom_i2c_addr`: EEPROM I2C address (hex, default: "0x57")
-- `eeprom_size`: EEPROM size in bytes (default: 1024)
-- `gpio_host_pins`: Dictionary mapping channels 1-8 to GPIO pins
+- `mode`: "gpio" or "i2c"
+- `i2c_bus_id`: I2C bus number
+- `i2c_sda_pin`: SDA GPIO pin
+- `i2c_scl_pin`: SCL GPIO pin
+- `i2c_device_addr`: I/O expander address (hex)
+- `eeprom_i2c_addr`: EEPROM address (hex)
+- `eeprom_size`: EEPROM capacity in bytes
+- `num_of_adcs`: Number of ADCs (analog only)
+- `adc_i2c_addrs`: Array of ADC addresses (analog only)
+- `adc_sampling_rate`: Sampling rate in SPS (analog only)
+- `gpio_host_pins`: Channel-to-GPIO mapping
 
-#### Pin Configuration
-- `pin_config`: Binary string for channel directions (default: "0b00001111")
-  - Examples:
-    - IoTExtra Relay2: "0b11110000" (channels 1-4 outputs, 5-8 unused/inputs)
-    - IoTExtra Input: "0b11111111" (all inputs)
-    - IoTExtra Octal: "0b00001111" (channels 0-3 outputs, 4-7 inputs)
+#### Channel Settings
+- `name`: Channel identifier (max 8 chars)
+- `channel_type`: "1" (digital) or "2" (analog)
+- `interface_type`: Interface code
+- `channel_number`: Physical channel (0-7)
+- `actions`: 0 (read-only) or 1 (read+write)
+- `measurement_range`: Analog range code (analog only)
+- `adc_hardware_gain`: K factor (analog only)
+- `shunt_resistance`: Shunt value in Ω (analog only)
+- `adc_offset`: Offset in V (analog only)
 
-#### Status Settings
-- `status_update_interval_s`: Update frequency in seconds (default: 30)
+#### Pin Configuration (Digital Only)
+- `pin_config`: Binary string (e.g., "0b00001111")
+- `status_update_interval_s`: Update frequency in seconds
 
 ## EEPROM Requirements
 
-- **Minimum**: 8 Kbit (1024 bytes) EEPROM
+- **Minimum Size**: 8 Kbit (1024 bytes)
+- **Estimated Usage**: ~228-300 bytes depending on channel count and types
+- **Storage**: Device firmware handles EEPROM writing after receiving configuration
+- **Access**: EEPROM is device-internal; configuration tool doesn't directly program it
 
 ## Validation Rules
 
-- Channel names: 1-8 characters, unique
-- Channel numbers: 0-7, unique
-- Maximum: 8 channels
-- I2C address: Required for I2C interfaces, valid hex
-- Actions: 0 or 1
-- Pin configuration: 0-255 (8-bit value), supports binary/hex/decimal input
-- Status interval: Positive integer
+The tool enforces:
+- **Channel names**: 1-8 characters, alphanumeric, unique within configuration
+- **Channel numbers**: 0-7, unique per channel type
+- **Maximum channels**: 8 total per node
+- **I2C addresses**: Valid hex format (0x03-0x77 for 7-bit addresses)
+- **Actions**: 0 or 1 for digital; must be 0 for analog
+- **Pin configuration**: 0-255 (8-bit), accepts binary/hex/decimal input
+- **ADC calibration**: Positive values for gain/shunt; any numeric for offset
+- **Measurement ranges**: Must be from predefined list
+- **Status interval**: Positive integer
 
-## Future Enhancements
+## Analog Measurement Ranges
 
-- Support for analog I/O nodes
-- Event counter functionality for digital nodes
-- Interaction with other platforms (e.g., Blynk, Modbus)
-- Additional interface types (e.g., MCP23008)
-- Direct binary EEPROM export and programming tools
-- Advanced MQTT features (e.g., security)
-- Node-RED dashboard examples for channel commands (read/on/off/switch)
-- Virtual channel IDs for faster MQTT interactions
+The tool supports the following measurement ranges for analog channels:
 
-## Technical Notes
+| Code | Range | Description |
+|------|-------|-------------|
+| 0b00000001 | 0-0.5V | Unipolar voltage |
+| 0b00000010 | 0-5V | Unipolar voltage |
+| 0b00000011 | 0-10V | Unipolar voltage |
+| 0b10000001 | ±0.5V | Bipolar voltage |
+| 0b10000010 | ±5V | Bipolar voltage |
+| 0b10000011 | ±10V | Bipolar voltage |
+| 0b00100001 | 0-20mA | Unipolar current |
+| 0b10100001 | ±20mA | Bipolar current |
+| 0b00100010 | 4-20mA | Industrial current loop |
+| 0b00100011 | 0-40mA | Extended current range |
 
-- Configurations are PC-side JSON; devices store in binary EEPROM format
-- Serial communication uses <START>JSON<END> framing
-- EEPROM is accessible only from the node (default I2C address known to firmware)
-- Tool supports interactive editing with defaults for quick setup
-- Based on documentation for Node-RED integration with digital I/O mezzanines
+## ADC Sampling Rates
+
+Available sampling rates (maps to ADS1115/ADS1015 configuration):
+
+| SPS | Config Code | Notes |
+|-----|-------------|-------|
+| 8 | 0 | Lowest noise, slowest |
+| 16 | 1 | |
+| 32 | 2 | |
+| 64 | 3 | |
+| 128 | 4 | **Default** - balanced |
+| 250 | 5 | |
+| 475 | 6 | |
+| 860 | 7 | Fastest, higher noise |
+
+## Calibration Guide
+
+### ADC Hardware Gain (K Factor)
+
+The hardware gain compensates for voltage division in the analog input circuitry:
+
+- **Standard Configuration (K ≈ 0.2376)**: Two 49.9kΩ resistors in parallel
+- **Modified Configuration (K ≈ 0.4752)**: Single 49.9kΩ resistor (requires jumper change)
+- **V1 Boards (K ≈ 0.2)**: Older IoTextra Analog boards
+- **Custom**: Measure and calculate based on your circuit
+
+### Shunt Resistance
+
+For current measurements, the shunt resistance determines the voltage-to-current conversion:
+
+- **Standard (0.249Ω)**: Common in newer designs
+- **V1 Boards (0.12Ω / 120Ω)**: Verify with multimeter
+- **Custom**: Match your hardware specifications
+
+### ADC Offset
+
+Compensates for systematic measurement errors:
+
+- Set to 0.0V for no compensation
+- Positive values shift readings up
+- Negative values shift readings down
+- Calibrate by measuring known reference voltages
 
 ## Troubleshooting
 
-- **Serial errors**: Ensure pyserial is installed and the port is correct (e.g., /dev/cu.usbmodem2101 on macOS)
-- **"Channel name already exists"**: Use unique names
+### Serial Communication Issues
+- **Error**: "Failed to open serial port"
+  - **Solution**: Install pyserial (`pip install pyserial`), verify port name
+  - **macOS**: Ports typically `/dev/cu.usbmodem*`
+  - **Linux**: Ports typically `/dev/ttyACM*` or `/dev/ttyUSB*`
+  - **Windows**: Ports typically `COM*`
+
+### Configuration Errors
+- **"Channel name already exists"**: Use unique names for all channels
 - **"Maximum 8 channels reached"**: Remove channels before adding more
-- **"Invalid I2C address"**: Use hex format (e.g., "0x3f")
-- **"No configuration loaded"**: Create or load before editing/sending
+- **"Invalid I2C address"**: Use hex format (e.g., "0x3f", "0x49")
 - **"Invalid pin configuration"**: Use "0b..." (binary), "0x..." (hex), or decimal
-- **No response from device**: Check serial connection, baudrate, and device firmware
+
+### Device Communication
+- **"No response from device"**: 
+  - Verify serial connection is active
+  - Check device is powered and running firmware
+  - Ensure baudrate matches (115200)
+  - Wait full timeout period (20 seconds for send, 5 for read)
+- **"Failed to parse response JSON"**:
+  - Device firmware may not be compatible
+  - Check for firmware updates
+
+### Configuration Loading
+- **"Error loading configuration"**:
+  - Verify JSON file syntax
+  - Check all required fields are present
+  - Legacy configurations may need manual migration of ADC settings
+
+## Future Enhancements
+
+- Support for event counters on digital inputs
+- Additional I/O expander types
+- Advanced MQTT features (TLS, authentication)
+- Configuration version management
+
+## Technical Notes
+
+- Configurations stored as JSON on PC, converted to binary format by device firmware
+- Serial protocol uses `<START>` and `<END>` delimiters for reliable framing
+- EEPROM accessible only from device (I2C address known to firmware)
+- Tool supports interactive editing with sensible defaults for rapid prototyping
+- Analog calibration supports per-channel values for maximum flexibility
+- Legacy hardware-level calibration values automatically migrated to per-channel settings
+- Compatible with Node-RED for MQTT-based automation
 
 ## License
 
 This tool is part of the IoTflow project for IoTextra Hardware Modules.
+
+---
+
+**Author**: Arshia Keshvari  
+**Role**: Independent Developer, Engineer, and Project Author
+
+For support, issues, or feature requests, please refer to the IoTflow project documentation.
