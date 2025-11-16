@@ -1,3 +1,18 @@
+"""
+===========================================================
+ADS1x15 MicroPython Driver
+===========================================================
+
+A MicroPython driver for ADS1115, ADS1114, ADS1113, and ADS1015
+analog-to-digital converters. Provides single-shot and continuous
+measurement modes, programmable gain control, comparator alert
+functionality, and voltage conversion helpers.
+
+Author: Arshia Keshvari
+Role: Independent Developer, Engineer, and Project Author
+Last Updated: 2025-11-16
+"""
+
 # The MIT License (MIT)
 #
 # Copyright (c) 2016 Radomir Dopieralski (@deshipu),
@@ -21,6 +36,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
+
 import utime as time
 
 _REGISTER_MASK = const(0x03)
