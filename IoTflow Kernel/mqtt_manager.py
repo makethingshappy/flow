@@ -1,3 +1,17 @@
+"""
+------------------------------------------------------------
+MqttManager – Wi-Fi and MQTT Management for IoTextra Modules
+------------------------------------------------------------
+This script provides a lightweight MQTT manager for MicroPython, handling
+Wi-Fi connections, MQTT broker communication, subscribing to topics, and
+publishing messages. It also supports a callback mechanism for received
+commands/messages.
+
+Author: Arshia Keshvari
+Role: Independent Developer, Engineer, and Project Author
+Last Updated: 2025-11-16
+"""
+
 import time
 from umqtt_simple import MQTTClient
 import network
@@ -89,4 +103,5 @@ class MqttManager:
         wlan = network.WLAN(network.STA_IF)
         wlan.disconnect()
         print("Wi-Fi disconnected.")
+
 
