@@ -16,7 +16,7 @@ The firmware running on the MCU, responsible for:
 - Communicating via the MQTT protocol  
 - Acting as a robust, standalone IoT/IIoT node  
 - Integrating with Node-RED  
-- Providing built-in compatibility and seamless integration with platforms such as **Blynk**
+- Providing built-in compatibility and seamless integration with cloud platforms such as **Blynk**
 
 ### 2. IoTflow Forge
 A PC-based configuration application offering:
