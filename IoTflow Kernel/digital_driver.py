@@ -1,15 +1,18 @@
+"""
+Digital Driver – Hardware Abstraction Layer for Digital I/O
+------------------------------------------------------------
+This script provides a unified driver to control IoTextra Digital I/O hardware using
+either I2C (via a TCA9534 I/O expander) or GPIO mode through a HOST connector.
+It supports setting output states and reading inputs for multiple hardware
+variants of the IoTextra Digital I/O boards.
+
+Author: Arshia Keshvari
+Role: Independent Developer, Engineer, and Project Author
+Last Updated: 2025-11-16
+"""
+
 import machine
 
-# IoTextra board with TCA9534 I/O expander
-# driver = IotDriver(
-#         config.I2C_BUS_ID,
-#         config.I2C_SDA_PIN,
-#         config.I2C_SCL_PIN,
-#         config.I2C_DEVICE_ADDR,
-#         config.GPIO_HOST_PINS,
-#         config.PIN_CONFIG,
-#         config.HARDWARE_MODE
-#     )
 class IotDriver:
     def __init__(self, bus_id, sda_pin, scl_pin, device_address, gpio_host_pins, pin_config, hardware_mode):
         self.device_address = device_address
@@ -117,4 +120,5 @@ class IotDriver:
                     result.append(None)
             return result
         
+
         return None
