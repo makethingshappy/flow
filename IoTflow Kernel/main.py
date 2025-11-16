@@ -241,6 +241,7 @@ def check_and_publish_analog():
         if DEBUG:
             print(f"Error reading/publishing analog values: {e}")
 
+# Uncomment and comment above if you wish to publish values only when they change
 # def check_and_publish_analog():
 #     """Reads analog channels and publishes their values only when they change."""
 #     global last_analog_values
